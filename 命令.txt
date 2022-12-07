@@ -1,0 +1,18 @@
+安装docker
+https://yeasy.gitbook.io/docker_practice/install/debian
+
+{
+  "registry-mirrors": [
+    "https://mirror.ccs.tencentyun.com"
+  ]
+}
+
+docker compose up -d
+docker compose down -v --rmi=all
+
+
+
+docker compose mysql 版本大于5.6 多次安装时会连接不上，解决办法，删除数据
+https://github.com/docker-library/mysql/issues/275
+
+docker-compose rm -fv; sudo rm -rf ~/dev/dbs-data/mysql/*

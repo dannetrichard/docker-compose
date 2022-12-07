@@ -1,0 +1,83 @@
+version: "3.9"
+services:
+  springboot-app:
+    container_name: springboot-app
+    build: ./springboot-app
+    restart: always
+    env_file: ./.env
+    ports:
+      - $SPRING_LOCAL_PORT:$SPRING_DOCKER_PORT
+    depends_on:
+      - db
+      - cache
+    volumes:
+      - ./springboot-app/data:/data
+    networks:
+      - back
+      - front
+
+  angular-app:
+    container_name: angular-app
+    build: ./angular-app
+    restart: always
+    ports:
+      - $ANGULAR_LOCAL_PORT:$ANGULAR_DOCKER_PORT
+    networks:
+      - front
+
+  cache:
+    container_name: cache
+    image: redis:7.0.5-alpine3.17
+    restart: always
+    ports:
+      - $REDIS_LOCAL_PORT:$REDIS_DOCKER_PORT
+    networks:
+      - back
+
+  db:
+    container_name: db
+    image: mysql:8.0.31
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: $MYSQLDB_ROOT_PASSWORD
+      MYSQL_DATABASE: $MYSQLDB_DATABASE
+    ports:
+      - $MYSQLDB_LOCAL_PORT:$MYSQLDB_DOCKER_PORT
+    volumes:
+      - ./mysql/lib/mysql:/var/lib/mysql
+      - ./mysql/init:/docker-entrypoint-initdb.d/
+      - ./mysql/conf/my.cnf:/etc/my.cnf
+    networks:
+      - back
+
+  adminer:
+    container_name: adminer
+    image: adminer:4.8.1
+    restart: always
+    ports:
+      - $ADMINER_LOCAL_PORT:$ADMINER_DOCKER_PORT
+    networks:
+      - back
+
+  rabbitmq:
+    image: rabbitmq:management-alpine
+    container_name: rabbitmq
+    restart: always
+    ports:
+      - $RABBITMQ_LOCAL_PORT:$RABBITMQ_DOCKER_PORT
+      - 15672:15672
+    volumes:
+      - ./rabbitmq:/var/lib/rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: $RABBITMQ_DEFAULT_USER
+      RABBITMQ_DEFAULT_PASS: $RABBITMQ_DEFAULT_PASS
+    command: 
+      '--rabbitmq-plugins enable rabbitmq_mqtt'
+    networks:
+      - back
+
+networks:
+  front:
+    driver: bridge
+  back:
+    driver: bridge
